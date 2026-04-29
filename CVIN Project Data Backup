@@ -1,0 +1,86 @@
+import arcpy
+import os
+import datetime
+from arcgis.gis import GIS
+from time import strftime
+
+date=strftime('%Y%m%d')
+
+# Login
+gis = GIS("pro")
+
+## List features to back up
+backupFeatureNames_List = [
+    # CVIN Aquatic Avoidance Areas
+    "60736282 CVIN Aquatic Resource Avoidance Collection Layers",
+    # CVIN Segments
+    "AGOL Upload _ SubSegments _ 20250423",
+    # CVIN Focused Species and Nest Collection
+    "60736282 CVIN Focused Species and Nest Collection",
+    # CVIN Data Collection Layer
+    "60736282 CVIN Data Collection Features",
+    # CVIN Burrow Observation
+    "60736282 CVIN Burrow Observation",
+    # CVIN Bio Segments
+    "60736282 CVIN Segments",
+    # CVIN GGS Suitable Waterway
+    "60736282 CVIN GGS Suitable Waterway",
+    # CVIN Elderberry
+    "60736282_CVIN_Bio_Elderberry",
+    # CVIN Start/Stop Points
+    "60736282 CVIN Start Stop Points",
+    # CVIN Avoidance Buffers
+    "60736282 CVIN Avoidance Buffers",
+    # CVIN Potential Work Area No Burrows
+    "60736282 Potential Work Area No Burrows",
+    # CVIN Vault Locations
+    "60736282 CVIN Vault Locations"
+]
+
+# List of Item IDs for each feature:
+itemIDs_List = [
+    # CVIN Aquatic Avoidance Areas
+    "c64ea52ff9064aa381e5fc09b3d0f72f",
+    # CVIN Segments
+    "b2cfb7c3b4674edd8d5402f8de843daa",
+    # CVIN Focused Species and Nest Collection
+    "04d8c933d9964e6aae93b8360e914a3e",
+    # CVIN Data Collection Layer
+    "1e16c2e84dad4eb19566522edfa3cae7",
+    # CVIN Burrow Observation
+    "d5d995492af4495b834174e8a4bad326",
+    # CVIN Bio Segments
+    "4d97cd549675427a9cd49758ba8ae9e1",
+    # CVIN GGS Suitable Waterway
+    "9c2a23bb32694ca2982bf05ceb054164",
+    # CVIN Elderberry
+    "5975fbc474ef44ad873d5fa0f0c00b47",
+    # CVIN Start/Stop Points
+    "ef2feb1878af496896fffbd74f22c41e",
+    # CVIN Avoidance Buffers
+    "0216b5cf15df4b83988f3393f2da70fd",
+    # CVIN Potential Work Area No Burrows
+    "5eb99f77fe6a490da2405dc2672e12e4",
+    # CVIN Vault Locations
+    "cb4416e498ee4150b12f01e0482baf1d"
+]
+
+# Import Variables
+output = r'\\na.aecomnet.com\lfs\AMER\SanDiego-USSDG1\DCS\GIS\Projects\60736282_CVIN\01_data\__Archive\Project Data Backup'
+outputFolder = f"{output}\{date}"
+os.makedirs(outputFolder)
+print(outputFolder)
+
+### Create Backup
+n = len(itemIDs_List)
+
+for x in range(n):
+    itemID = itemIDs_List[x]
+    backupFeatureName = backupFeatureNames_List[x]
+    tempfile = strftime(backupFeatureName + '_%Y%m%d')
+    dataitem = gis.content.get(itemID)
+    dataitem.export(tempfile, 'File Geodatabase', wait=True)
+    myexport = gis.content.search(tempfile, item_type='File Geodatabase')
+    fgdb = gis.content.get(myexport[0].itemid) 
+    fgdb.download(save_path=outputFolder)
+    print(backupFeatureNames_List[x], ": download is now complete")
