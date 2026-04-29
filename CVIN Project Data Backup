@@ -74,13 +74,23 @@ print(outputFolder)
 ### Create Backup
 n = len(itemIDs_List)
 
-for x in range(n):
-    itemID = itemIDs_List[x]
-    backupFeatureName = backupFeatureNames_List[x]
-    tempfile = strftime(backupFeatureName + '_%Y%m%d')
+for itemID, backupFeatureName in zip(itemIDs_List, backupFeatureNames_List):
     dataitem = gis.content.get(itemID)
-    dataitem.export(tempfile, 'File Geodatabase', wait=True)
-    myexport = gis.content.search(tempfile, item_type='File Geodatabase')
-    fgdb = gis.content.get(myexport[0].itemid) 
-    fgdb.download(save_path=outputFolder)
-    print(backupFeatureNames_List[x], ": download is now complete")
+
+    try:
+        export_name = f"{backupFeatureName}_{date}"
+
+        export_item = dataitem.export(
+            export_name,
+            "File Geodatabase",
+            wait=True
+        )
+
+        export_item.download(save_path=outputFolder)
+        export_item.delete()  # optional cleanup
+
+        print(f"{backupFeatureName}: download complete")
+
+    except Exception as e:
+        print(f"{backupFeatureName}: FAILED")
+        print(str(e))
